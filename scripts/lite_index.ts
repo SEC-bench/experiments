@@ -34,6 +34,23 @@ interface Language {
   models: any[]
 }
 
+// Helper function to safely parse JSON lines
+function parseJsonLines(content: string): any[] {
+  return content
+    .trim()
+    .split('\n')
+    .filter(line => line.trim().length > 0) // Skip empty lines
+    .map(line => {
+      try {
+        return JSON.parse(line)
+      } catch (error) {
+        console.warn(`Skipping invalid JSON line: ${line.substring(0, 50)}...`)
+        return null
+      }
+    })
+    .filter(item => item !== null) // Remove failed parses
+}
+
 const leaderboard: Language[] = []
 
 for (const [langKey, langValue] of Object.entries(index)) {
@@ -54,19 +71,17 @@ for (const [langKey, langValue] of Object.entries(index)) {
       .map<Promise<Result>>(async (dirent) => {
         const path = `${dirent.name}`
         const metadata = yaml.load(await fs.readFile(`${basePath}/${path}/metadata.yaml`, 'utf8')) as Pick<Result, 'oss' | 'verified' | 'name' | 'site' | 'orgIcon' | 'date'>
-        // const generous_filecontent = await fs.readFile(`${basePath}/${path}/report_generous.jsonl`, 'utf8')
-        // const generous_report = generous_filecontent.trim().split('\n').map(line => JSON.parse(line))
-        // const medium_filecontent = await fs.readFile(`${basePath}/${path}/report_medium.jsonl`, 'utf8')
-        // const medium_report = medium_filecontent.trim().split('\n').map(line => JSON.parse(line))
-        // const strict_filecontent = await fs.readFile(`${basePath}/${path}/report_strict.jsonl`, 'utf8')
-        // const strict_report = strict_filecontent.trim().split('\n').map(line => JSON.parse(line))
         const filecontent = await fs.readFile(`${basePath}/${path}/report.jsonl`, 'utf8')
-        const report = filecontent.trim().split('\n').map(line => JSON.parse(line))
+        const report = parseJsonLines(filecontent)
         const urlLogs = `${GITHUB_URL}/${basePath}/${path}/logs`
         const urlTrajs = `${GITHUB_URL}/${basePath}/${path}/trajs`
         const hasLogs = await fs.access(`${basePath}/${path}/logs`).then(() => true, () => false)
         const hasTrajs = await fs.access(`${basePath}/${path}/trajs`).then(() => true, () => false)
         const hasReadme = await fs.access(`${basePath}/${path}/README.md`).then(() => true, () => false)
+
+        // Calculate statistics
+        const successfulResults = report.filter(item => item.success)
+        const totalResults = report.length
 
         return {
           name: metadata.name,
@@ -75,13 +90,15 @@ for (const [langKey, langValue] of Object.entries(index)) {
           orgIcon: metadata.orgIcon,
           site: metadata.site,
           date: metadata.date instanceof Date
-          ? metadata.date.toISOString().slice(0, 10)
-          : String(metadata.date),
-          resolvedRate: report.filter(item => item.success).length / report.length,
-          resolved: report.filter(item => item.success).length,
-          resolvedEasy: report.filter(item => item.success).length,
-          resolvedMedium: report.filter(item => item.success).length,
-          resolvedHard: report.filter(item => item.success).length,
+            ? metadata.date.toISOString().slice(0, 10)
+            : String(metadata.date),
+          resolvedRate: totalResults > 0 ? successfulResults.length / totalResults : 0,
+          resolved: successfulResults.length,
+          // For now, we're using the same count for all difficulty levels
+          // In the future, this could be enhanced to parse difficulty from instance_id or other metadata
+          resolvedEasy: successfulResults.length,
+          resolvedMedium: successfulResults.length,
+          resolvedHard: successfulResults.length,
           path: `${basePath}/${path}`,
           logs: hasLogs ? urlLogs : undefined,
           trajs: hasTrajs ? urlTrajs : undefined,
