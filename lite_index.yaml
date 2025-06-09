@@ -1,0 +1,7 @@
+Patch:
+  tabName: Patch
+  displayName: Vulnerability Patching
+  
+PoC:
+  tabName: PoC
+  displayName: PoC Generation
