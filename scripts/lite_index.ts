@@ -36,6 +36,12 @@ interface Language {
 
 // Helper function to safely parse JSON lines
 function parseJsonLines(content: string): any[] {
+  // Check if this is a Git LFS pointer file
+  if (content.trim().startsWith('version https://git-lfs.github.com/spec/v1')) {
+    console.warn('Detected Git LFS pointer file - actual content not available')
+    return []
+  }
+
   return content
     .trim()
     .split('\n')
@@ -70,7 +76,7 @@ for (const [langKey, langValue] of Object.entries(index)) {
       .filter((dirent) => dirent.isDirectory() && !dirent.name.startsWith('.'))
       .map<Promise<Result>>(async (dirent) => {
         const path = `${dirent.name}`
-        const metadata = yaml.load(await fs.readFile(`${basePath}/${path}/metadata.yaml`, 'utf8')) as Pick<Result, 'oss' | 'verified' | 'name' | 'site' | 'orgIcon' | 'date'>
+        const metadata = yaml.load(await fs.readFile(`${basePath}/${path}/metadata.yaml`, 'utf8')) as any
         const filecontent = await fs.readFile(`${basePath}/${path}/report.jsonl`, 'utf8')
         const report = parseJsonLines(filecontent)
         const urlLogs = `${GITHUB_URL}/${basePath}/${path}/logs`
