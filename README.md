@@ -39,17 +39,14 @@ We express our deepest gratitude to the creators of the [Multi-SWE-bench](https:
 
 ## 📄 Citation
 
-If you found [SEC-bench](https://arxiv.org/abs/2505.00000) helpful for your work, please cite as follows:
+If you found [SEC-bench](https://arxiv.org/abs/2506.11791) helpful for your work, please cite as follows:
 
 ```
-@inproceedings{lee2025secbench,
-    title={SEC-bench: Automated Benchmarking of LLM Agents on Real-World Software Security Tasks},
-    author={Hwiwon Lee and Ziqi Zhang and Hanxiao Lu and Lingming Zhang},
-    year={2025},
-    eprint={2505.00000},
-    archivePrefix={arXiv},
-    primaryClass={cs.SE},
-    url={https://arxiv.org/abs/2505.00000}
+@article{lee2025sec,
+  title={SEC-bench: Automated Benchmarking of LLM Agents on Real-World Software Security Tasks},
+  author={Lee, Hwiwon and Zhang, Ziqi and Lu, Hanxiao and Zhang, Lingming},
+  journal={arXiv preprint arXiv:2506.11791},
+  year={2025}
 }
 ```
 
